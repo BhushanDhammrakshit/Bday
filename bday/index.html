@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Counting Down to Your Special Day 💖</title>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Floating hearts background -->
+  <div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
+
+  <!-- Hero / Countdown Section -->
+  <header class="hero" id="heroSection">
+    <div class="hero-inner">
+      <p class="eyebrow">A little something just for you</p>
+      <h1 class="hero-title">Counting Down to Your Birthday</h1>
+      <p class="hero-sub">Every second brings me closer to celebrating <span class="accent">YOU</span> 💕</p>
+
+      <div class="countdown" id="countdown" role="timer" aria-live="polite">
+        <div class="time-box"><span id="days">00</span><label>Days</label></div>
+        <div class="time-box"><span id="hours">00</span><label>Hours</label></div>
+        <div class="time-box"><span id="minutes">00</span><label>Minutes</label></div>
+        <div class="time-box"><span id="seconds">00</span><label>Seconds</label></div>
+      </div>
+
+      <p class="target-date">🎂 May 2<sup>nd</sup>, 2026 🎂</p>
+
+      <a href="#timeline" class="cta">Walk Through Our Memories ↓</a>
+    </div>
+  </header>
+
+  <!-- Memory Timeline Section -->
+  <section class="timeline-section" id="timeline">
+    <h2 class="section-title">Our Journey to Your Big Day</h2>
+    <p class="section-sub">A memory unlocks each day leading up to May 2<sup>nd</sup> ✨</p>
+    <div class="timeline" id="timelineContainer"></div>
+  </section>
+
+  <!-- Birthday Reveal (shows when countdown hits 0) -->
+  <section class="reveal hidden" id="revealSection">
+    <div class="reveal-card">
+      <h2 class="reveal-title">🎉 Happy Birthday, My Love 🎉</h2>
+      <p class="reveal-message">
+        Today the world celebrates the most wonderful person I know.
+        You make every ordinary day feel magical, and I can't wait to spend
+        a lifetime of birthdays by your side. Here's to you — the best part of me. 💖
+      </p>
+      <div class="cake">🎂</div>
+      <button class="cta" id="celebrateBtn">Make a Wish 🌟</button>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Made with 💗 just for you</p>
+  </footer>
+
+  <!-- Confetti canvas -->
+  <canvas id="confettiCanvas"></canvas>
+
+  <script src="memories.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
