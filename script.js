@@ -92,6 +92,7 @@
            onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><defs><linearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22><stop offset=%220%22 stop-color=%22%23ffc2d9%22/><stop offset=%221%22 stop-color=%22%23ff7aa6%22/></linearGradient></defs><rect width=%22400%22 height=%22300%22 fill=%22url(%23g)%22/><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2280%22>💖</text></svg>'" />
       <h3 class="memory-title">${mem.title}</h3>
       <p class="memory-text">${mem.text}</p>
+      ${idx === 1 ? '<button type="button" class="play-c4-btn" data-c4-open>Play Connect 4 🎮</button>' : ''}
     `;
     container.appendChild(card);
     cardRefs.push({ card, date: mem.date });
@@ -190,4 +191,255 @@
     revealSection.classList.remove('hidden');
     launchConfetti(6000);
   }
+
+  // ============================================
+  // Connect 4 Game (You = pink ♥, Bot = gold ⭐)
+  // ============================================
+  const ROWS = 6, COLS = 7;
+  const PLAYER = 1, BOT = 2;
+  let board, gameOver, busy;
+
+  const c4Modal   = document.getElementById('c4Modal');
+  const c4BoardEl = document.getElementById('c4Board');
+  const c4Status  = document.getElementById('c4Status');
+  const c4Close   = document.getElementById('c4Close');
+  const c4Restart = document.getElementById('c4Restart');
+
+  function newBoard() {
+    return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+  }
+
+  function renderBoard(winningCells = []) {
+    c4BoardEl.innerHTML = '';
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cell = document.createElement('button');
+        cell.className = 'c4-cell';
+        cell.type = 'button';
+        cell.dataset.col = c;
+        const v = board[r][c];
+        if (v === PLAYER) cell.classList.add('you');
+        else if (v === BOT) cell.classList.add('bot');
+        if (winningCells.some(([wr, wc]) => wr === r && wc === c)) {
+          cell.classList.add('win');
+        }
+        if (gameOver || v !== 0 || busy) cell.disabled = true;
+        cell.addEventListener('click', () => handleClick(c));
+        c4BoardEl.appendChild(cell);
+      }
+    }
+  }
+
+  function lowestEmptyRow(b, col) {
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (b[r][col] === 0) return r;
+    }
+    return -1;
+  }
+
+  function checkWin(b, player) {
+    const dirs = [[0,1],[1,0],[1,1],[1,-1]];
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (b[r][c] !== player) continue;
+        for (const [dr, dc] of dirs) {
+          const cells = [[r,c]];
+          for (let k = 1; k < 4; k++) {
+            const nr = r + dr*k, nc = c + dc*k;
+            if (nr<0||nr>=ROWS||nc<0||nc>=COLS||b[nr][nc]!==player) break;
+            cells.push([nr,nc]);
+          }
+          if (cells.length === 4) return cells;
+        }
+      }
+    }
+    return null;
+  }
+
+  function isFull(b) {
+    return b[0].every(v => v !== 0);
+  }
+
+  // Score a 4-window for bot evaluation
+  function scoreWindow(window, player) {
+    const opp = player === BOT ? PLAYER : BOT;
+    const pc = window.filter(v => v === player).length;
+    const oc = window.filter(v => v === opp).length;
+    const ec = window.filter(v => v === 0).length;
+    if (pc === 4) return 10000;
+    if (pc === 3 && ec === 1) return 50;
+    if (pc === 2 && ec === 2) return 5;
+    if (oc === 3 && ec === 1) return -80; // block priority
+    if (oc === 2 && ec === 2) return -3;
+    return 0;
+  }
+
+  function evaluate(b, player) {
+    let score = 0;
+    // center column preference
+    for (let r = 0; r < ROWS; r++) if (b[r][3] === player) score += 4;
+    // horizontal, vertical, diagonals
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (c + 3 < COLS) score += scoreWindow([b[r][c],b[r][c+1],b[r][c+2],b[r][c+3]], player);
+        if (r + 3 < ROWS) score += scoreWindow([b[r][c],b[r+1][c],b[r+2][c],b[r+3][c]], player);
+        if (r + 3 < ROWS && c + 3 < COLS) score += scoreWindow([b[r][c],b[r+1][c+1],b[r+2][c+2],b[r+3][c+3]], player);
+        if (r + 3 < ROWS && c - 3 >= 0)   score += scoreWindow([b[r][c],b[r+1][c-1],b[r+2][c-2],b[r+3][c-3]], player);
+      }
+    }
+    return score;
+  }
+
+  function validCols(b) {
+    const out = [];
+    for (let c = 0; c < COLS; c++) if (b[0][c] === 0) out.push(c);
+    return out;
+  }
+
+  function cloneAndDrop(b, col, player) {
+    const nb = b.map(r => r.slice());
+    const r = lowestEmptyRow(nb, col);
+    if (r >= 0) nb[r][col] = player;
+    return { board: nb, row: r };
+  }
+
+  // Minimax with alpha-beta
+  function minimax(b, depth, alpha, beta, maximizing) {
+    const win = checkWin(b, BOT);
+    const lose = checkWin(b, PLAYER);
+    if (win) return { score: 1000000 - (5 - depth) };
+    if (lose) return { score: -1000000 + (5 - depth) };
+    if (depth === 0 || isFull(b)) return { score: evaluate(b, BOT) };
+
+    const cols = validCols(b);
+    // Order: center first
+    cols.sort((a, c) => Math.abs(3 - a) - Math.abs(3 - c));
+
+    let best = { score: maximizing ? -Infinity : Infinity, col: cols[0] };
+    for (const col of cols) {
+      const { board: nb, row } = cloneAndDrop(b, col, maximizing ? BOT : PLAYER);
+      if (row < 0) continue;
+      const { score } = minimax(nb, depth - 1, alpha, beta, !maximizing);
+      if (maximizing) {
+        if (score > best.score) best = { score, col };
+        alpha = Math.max(alpha, score);
+      } else {
+        if (score < best.score) best = { score, col };
+        beta = Math.min(beta, score);
+      }
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+
+  function botMove() {
+    busy = true;
+    renderBoard();
+    c4Status.textContent = "Bot is thinking… 🤔";
+    setTimeout(() => {
+      const cols = validCols(board);
+      let chosenCol;
+
+      // 1) Always take an immediate winning move
+      const winNow = cols.find(c => {
+        const { board: nb, row } = cloneAndDrop(board, c, BOT);
+        return row >= 0 && checkWin(nb, BOT);
+      });
+
+      // 2) 60% of the time block an immediate player win; 40% miss it (dumb)
+      const mustBlock = cols.find(c => {
+        const { board: nb, row } = cloneAndDrop(board, c, PLAYER);
+        return row >= 0 && checkWin(nb, PLAYER);
+      });
+
+      if (winNow !== undefined) {
+        chosenCol = winNow;
+      } else if (mustBlock !== undefined && Math.random() < 0.6) {
+        chosenCol = mustBlock;
+      } else if (Math.random() < 0.5) {
+        // 3) Half the time: shallow strategic move (depth 1)
+        const { col } = minimax(board, 1, -Infinity, Infinity, true);
+        chosenCol = col;
+      } else {
+        // 4) Otherwise: completely random move
+        chosenCol = cols[Math.floor(Math.random() * cols.length)];
+      }
+
+      drop(chosenCol, BOT);
+      busy = false;
+      afterMove(BOT);
+    }, 450);
+  }
+
+  function drop(col, player) {
+    const r = lowestEmptyRow(board, col);
+    if (r < 0) return false;
+    board[r][col] = player;
+    return true;
+  }
+
+  function afterMove(player) {
+    const win = checkWin(board, player);
+    if (win) {
+      gameOver = true;
+      renderBoard(win);
+      c4Status.textContent = player === PLAYER ? "You won! 💖 You're amazing!" : "Bot wins this one! 🤖 Try again ♥";
+      if (player === PLAYER) launchConfetti(4000);
+      return;
+    }
+    if (isFull(board)) {
+      gameOver = true;
+      renderBoard();
+      c4Status.textContent = "It's a draw! 🌸";
+      return;
+    }
+    if (player === PLAYER) {
+      botMove();
+    } else {
+      c4Status.textContent = "Your turn, cutie ♥";
+      renderBoard();
+    }
+  }
+
+  function handleClick(col) {
+    if (gameOver || busy) return;
+    if (lowestEmptyRow(board, col) < 0) return;
+    drop(col, PLAYER);
+    afterMove(PLAYER);
+  }
+
+  function startGame() {
+    board = newBoard();
+    gameOver = false;
+    busy = false;
+    c4Status.textContent = "Your turn, cutie ♥";
+    renderBoard();
+  }
+
+  function openC4() {
+    c4Modal.classList.remove('hidden');
+    startGame();
+  }
+  function closeC4() {
+    c4Modal.classList.add('hidden');
+  }
+
+  // Event delegation: any "Play Connect 4" button on memory cards
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-c4-open]');
+    if (btn) {
+      // Prevent opening from a locked card
+      const card = btn.closest('.memory-card');
+      if (card && card.classList.contains('locked')) return;
+      openC4();
+    }
+  });
+  c4Close.addEventListener('click', closeC4);
+  c4Restart.addEventListener('click', startGame);
+  c4Modal.addEventListener('click', (e) => {
+    if (e.target === c4Modal) closeC4();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !c4Modal.classList.contains('hidden')) closeC4();
+  });
 })();
