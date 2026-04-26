@@ -8,7 +8,7 @@
    - image:   Path to image (place files in /images)
    ============================================ */
 
-const TARGET_BIRTHDAY = '2026-04-27T00:00:00'; // 🎂 Her birthday — change timezone if needed
+const TARGET_BIRTHDAY = '2026-05-02T00:00:00'; // 🎂 Her birthday — change timezone if needed
 
 const MEMORIES = [
   {
