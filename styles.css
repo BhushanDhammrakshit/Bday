@@ -392,3 +392,166 @@ body {
   .memory-card.left::after,
   .memory-card.right::after { left: -42px; right: auto; }
 }
+
+
+/* ============================================
+   Connect 4 Game
+   ============================================ */
+.memory-card .play-c4-btn {
+  display: inline-block;
+  margin-top: 0.8rem;
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--pink-400), var(--rose));
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.memory-card .play-c4-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.c4-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(90, 26, 59, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: c4FadeIn .25s ease;
+}
+.c4-modal.hidden { display: none; }
+
+@keyframes c4FadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.c4-dialog {
+  position: relative;
+  background: linear-gradient(180deg, var(--cream), var(--pink-50));
+  border-radius: 24px;
+  padding: 1.6rem 1.6rem 1.4rem;
+  width: min(440px, 100%);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  border: 2px solid var(--pink-200);
+}
+
+.c4-close {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  background: transparent;
+  border: none;
+  font-size: 1.4rem;
+  color: var(--rose);
+  cursor: pointer;
+  line-height: 1;
+}
+
+.c4-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.2rem;
+  color: var(--rose);
+  margin-bottom: 0.2rem;
+}
+
+.c4-status {
+  font-size: 0.95rem;
+  color: var(--plum);
+  margin-bottom: 0.9rem;
+  min-height: 1.4em;
+  font-weight: 500;
+}
+
+.c4-board {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  padding: 10px;
+  border-radius: 16px;
+  box-shadow: inset 0 4px 14px rgba(90, 26, 59, 0.25), var(--shadow);
+  margin: 0 auto 1rem;
+  max-width: 100%;
+}
+
+.c4-cell {
+  aspect-ratio: 1 / 1;
+  background: var(--cream);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: transform .15s ease, background .15s ease;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+}
+.c4-cell:hover:not(:disabled) {
+  background: var(--pink-100);
+}
+.c4-cell:disabled { cursor: not-allowed; }
+
+.c4-cell.you {
+  background: radial-gradient(circle at 30% 30%, #ff9ec0, var(--rose));
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,0.25), 0 2px 4px rgba(233,30,99,0.4);
+  animation: c4Drop .35s cubic-bezier(.34,1.56,.64,1);
+}
+.c4-cell.bot {
+  background: radial-gradient(circle at 30% 30%, #fff3a8, var(--gold));
+  box-shadow: inset 0 -3px 6px rgba(0,0,0,0.25), 0 2px 4px rgba(218,165,32,0.5);
+  animation: c4Drop .35s cubic-bezier(.34,1.56,.64,1);
+}
+.c4-cell.win {
+  outline: 3px solid #fff;
+  outline-offset: -2px;
+  animation: c4Win 0.9s ease infinite alternate;
+}
+@keyframes c4Drop {
+  from { transform: translateY(-300%); }
+  to   { transform: translateY(0); }
+}
+@keyframes c4Win {
+  from { transform: scale(1); filter: brightness(1); }
+  to   { transform: scale(1.08); filter: brightness(1.25); }
+}
+
+.c4-controls { margin-top: 0.4rem; }
+.c4-restart {
+  padding: 0.55rem 1.4rem;
+  font-size: 0.95rem;
+}
+
+.c4-legend {
+  margin-top: 0.9rem;
+  font-size: 0.85rem;
+  color: var(--plum);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3rem;
+}
+.c4-dot {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+.c4-dot.c4-you { background: radial-gradient(circle at 30% 30%, #ff9ec0, var(--rose)); }
+.c4-dot.c4-bot { background: radial-gradient(circle at 30% 30%, #fff3a8, var(--gold)); }
+
+@media (max-width: 480px) {
+  .c4-dialog { padding: 1.2rem 0.9rem 1rem; }
+  .c4-title { font-size: 1.8rem; }
+  .c4-board { gap: 4px; padding: 7px; }
+}
