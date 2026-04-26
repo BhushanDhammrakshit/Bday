@@ -1,0 +1,394 @@
+/* ============================================
+   Birthday Countdown — Romantic Pink Theme
+   ============================================ */
+
+:root {
+  --pink-50:  #fff0f6;
+  --pink-100: #ffe0ec;
+  --pink-200: #ffc2d9;
+  --pink-300: #ff9ec0;
+  --pink-400: #ff7aa6;
+  --pink-500: #ff4d8d;
+  --rose:     #e91e63;
+  --blush:    #ffd6e7;
+  --cream:    #fff8fb;
+  --gold:     #ffd700;
+  --plum:     #5a1a3b;
+  --shadow:   0 10px 30px rgba(233, 30, 99, 0.18);
+  --shadow-lg:0 20px 50px rgba(233, 30, 99, 0.25);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background:
+    radial-gradient(circle at 20% 10%, var(--pink-100) 0%, transparent 40%),
+    radial-gradient(circle at 80% 90%, var(--blush) 0%, transparent 40%),
+    linear-gradient(180deg, var(--cream) 0%, var(--pink-50) 100%);
+  color: var(--plum);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* -------- Floating Hearts Background -------- */
+.hearts-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+.heart {
+  position: absolute;
+  font-size: 1.5rem;
+  opacity: 0.6;
+  animation: floatUp linear infinite;
+  user-select: none;
+}
+@keyframes floatUp {
+  0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  10%  { opacity: 0.7; }
+  90%  { opacity: 0.7; }
+  100% { transform: translateY(-15vh) rotate(360deg); opacity: 0; }
+}
+
+/* -------- Hero / Countdown -------- */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 2rem 1.5rem;
+  z-index: 1;
+}
+.hero-inner {
+  max-width: 900px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 192, 217, 0.5);
+  border-radius: 28px;
+  padding: 3rem 2rem;
+  box-shadow: var(--shadow-lg);
+  animation: fadeUp 1s ease;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.eyebrow {
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: var(--pink-500);
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+
+.hero-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2.8rem, 7vw, 5.5rem);
+  color: var(--rose);
+  text-shadow: 2px 2px 8px rgba(255, 122, 166, 0.35);
+  line-height: 1.05;
+  margin-bottom: 0.6rem;
+}
+
+.hero-sub {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: #7a3a5a;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+.accent {
+  font-family: 'Dancing Script', cursive;
+  color: var(--pink-500);
+  font-weight: 700;
+  font-size: 1.3em;
+}
+
+/* Countdown boxes */
+.countdown {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  max-width: 700px;
+  margin: 0 auto 2rem;
+}
+.time-box {
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+  color: white;
+  border-radius: 20px;
+  padding: 1.5rem 0.5rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+.time-box::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(45deg, transparent, rgba(255,255,255,0.25), transparent);
+  transform: rotate(45deg);
+  animation: shine 4s infinite;
+}
+@keyframes shine {
+  0%   { transform: translate(-100%, -100%) rotate(45deg); }
+  100% { transform: translate(100%, 100%) rotate(45deg); }
+}
+.time-box:hover { transform: translateY(-6px) scale(1.03); }
+.time-box span {
+  display: block;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  position: relative;
+  z-index: 1;
+}
+.time-box label {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-size: 0.7rem;
+  opacity: 0.95;
+  margin-top: 0.3rem;
+  position: relative;
+  z-index: 1;
+}
+
+.target-date {
+  font-family: 'Dancing Script', cursive;
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: var(--rose);
+  margin-bottom: 2rem;
+}
+
+.cta {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--pink-500), var(--rose));
+  color: white;
+  padding: 0.9rem 2rem;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-family: inherit;
+  box-shadow: var(--shadow);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.cta:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* -------- Timeline -------- */
+.timeline-section {
+  padding: 5rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+.section-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  text-align: center;
+  color: var(--rose);
+  margin-bottom: 0.5rem;
+}
+.section-sub {
+  text-align: center;
+  color: #7a3a5a;
+  margin-bottom: 3rem;
+  font-weight: 300;
+}
+
+.timeline {
+  position: relative;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--pink-300), var(--pink-500), var(--pink-300));
+  transform: translateX(-50%);
+  border-radius: 3px;
+}
+
+.memory-card {
+  position: relative;
+  width: 45%;
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin-bottom: 2.5rem;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.memory-card.visible { opacity: 1; transform: translateY(0); }
+.memory-card.left  { margin-right: auto; }
+.memory-card.right { margin-left: auto; }
+
+.memory-card::after {
+  content: '💗';
+  position: absolute;
+  top: 1.5rem;
+  width: 36px; height: 36px;
+  background: white;
+  border: 3px solid var(--pink-500);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+}
+.memory-card.left::after  { right: -57px; }
+.memory-card.right::after { left:  -57px; }
+
+.memory-card.locked {
+  background: linear-gradient(135deg, #fdf2f7, #fce4ec);
+  filter: grayscale(0.2);
+}
+.memory-card.locked .memory-img,
+.memory-card.locked .memory-title,
+.memory-card.locked .memory-text { visibility: hidden; }
+.memory-card.locked::before {
+  content: '🔒 Unlocks ' attr(data-unlock);
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 240, 246, 0.85);
+  border-radius: 20px;
+  font-weight: 600;
+  color: var(--rose);
+  font-size: 0.95rem;
+  z-index: 2;
+}
+
+.memory-date {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--pink-400), var(--pink-500));
+  color: white;
+  padding: 0.3rem 0.9rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 0.8rem;
+}
+.memory-img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--pink-100), var(--pink-200));
+}
+.memory-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 1.6rem;
+  color: var(--rose);
+  margin-bottom: 0.4rem;
+}
+.memory-text {
+  color: #5a3a4a;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* -------- Birthday Reveal -------- */
+.reveal {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 3rem 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+.reveal.hidden { display: none; }
+.reveal-card {
+  background: white;
+  border-radius: 28px;
+  padding: 3rem 2rem;
+  max-width: 700px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.8s ease;
+}
+@keyframes pop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.reveal-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  color: var(--rose);
+  margin-bottom: 1.5rem;
+}
+.reveal-message {
+  font-size: 1.1rem;
+  color: #5a3a4a;
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+.cake {
+  font-size: 6rem;
+  margin: 1rem 0 1.5rem;
+  animation: bounce 2s infinite;
+}
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-15px); }
+}
+
+/* -------- Footer -------- */
+.footer {
+  text-align: center;
+  padding: 2rem;
+  color: var(--pink-500);
+  font-weight: 300;
+  position: relative;
+  z-index: 1;
+}
+
+/* -------- Confetti Canvas -------- */
+#confettiCanvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* -------- Responsive -------- */
+@media (max-width: 720px) {
+  .countdown { grid-template-columns: repeat(2, 1fr); }
+  .hero-inner { padding: 2rem 1.2rem; }
+
+  .timeline::before { left: 20px; }
+  .memory-card,
+  .memory-card.left,
+  .memory-card.right {
+    width: calc(100% - 50px);
+    margin-left: 50px;
+    margin-right: 0;
+  }
+  .memory-card.left::after,
+  .memory-card.right::after { left: -42px; right: auto; }
+}
