@@ -8,7 +8,7 @@
    - image:   Path to image (place files in /images)
    ============================================ */
 
-const TARGET_BIRTHDAY = '2026-05-02T00:00:00'; // 🎂 Her birthday — change timezone if needed
+const TARGET_BIRTHDAY = '2026-04-27T00:00:00'; // 🎂 Her birthday — change timezone if needed
 
 const MEMORIES = [
   {
@@ -19,38 +19,38 @@ const MEMORIES = [
   },
   {
     date: '2026-04-27',
-    title: 'This day holds a special memory for us, this was the day we went to Kaffeine together for the first time. and was able to test the best pasta of life, we found the game connect4, we used to play it for sevaral dates, loved playing it with you.',
-    text: "",
+    title: 'Kaffeine & Connect4 ☕',
+    text: "This day holds a special memory for us — the first time we went to Kaffeine together. Tasted the best pasta of my life, found the game Connect4, and ended up playing it on so many of our dates. Loved every round with you.",
     image: 'images/2_Kaffeine.jpeg'
   },
   {
     date: '2026-04-28',
-    title: 'It was the day we went to Sanjay Gandhi National Park together, enjoying the nature and each other\'s company, making memories that would last a lifetime. I also got to know about stamina that you have, but yeah you were looking hot that day in those yoga pants. Sexy ekdum......',
-    text: "",
+    title: 'Sanjay Gandhi National Park 🌿',
+    text: "The day we went to Sanjay Gandhi National Park together — enjoying nature and each other's company, making memories meant to last a lifetime. Got to see your stamina that day too… and yeah, you were looking absolutely hot in those yoga pants. Sexy ekdum.",
     image: 'images/3_SanjayGandhi.jpeg'
   },
   {
     date: '2026-04-29',
-    title: 'Well... talking about this day, IK i blundered at the end but it was still a special day for us, and I cherish the moments we shared together. It was a once in a lifetime kind of day that I will always remember....',
-    text: "",
+    title: 'Sunidhi Concert Night 🎶',
+    text: "Talking about this day… I know I blundered at the end, but it was still a special day for us. I cherish every moment we shared — a once-in-a-lifetime kind of day that I'll always remember.",
     image: 'images/4_Sunidhi.jpeg'
   },
   {
     date: '2026-04-30',
-    title: 'It was the first time that I celebrated valentine\'s day with someone, I liked everything that day, you were looking absolutely stunning and I felt so lucky to be with you that day. We had the best food, the best photos and I will always remember how happy I felt just being with you.',
-    text: "",
+    title: 'My First Valentine 💝',
+    text: "The first time I ever celebrated Valentine's Day with someone. I loved everything about that day — you were looking absolutely stunning and I felt so lucky to be yours. The best food, the best photos, and I'll always remember how happy I felt just being with you.",
     image: 'images/5_valentine.jpeg'
   },
   {
     date: '2026-05-01',
-    title: 'This was the day we went to Aksa Beach together, enjoying the waves, the sand, and each other\'s company. I loved seeing you so happy and carefree, and it made me realize how much I cherish these simple moments with you. and we made the flowers together, I was helping a little bit that day but I loved there being with you....',
-    text: "",
+    title: 'Aksa Beach Day 🌊',
+    text: "The day we went to Aksa Beach together — the waves, the sand, and each other's company. I loved seeing you so happy and carefree; it made me realize how much I cherish these simple moments with you. We made flowers together too — I was only helping a little, but I loved just being there with you.",
     image: 'images/6_Aksa.jpeg'
   },
   {
     date: '2026-05-02',
-    title: 'Well, all these memories that you and I shared wouldn\'t have been possible without you being in my life, and I am so grateful for every single moment we have spent together. Happy Birthday, my love! here is your cutu',
-    text: "",
+    title: 'Happy Birthday, My Love 🎂',
+    text: "All these memories we share wouldn't have been possible without you in my life, and I'm so grateful for every single moment we've spent together. Happy Birthday, my love — here's your cutu. 💕",
     image: 'images/7_Last.jpeg'
   }
 ];
