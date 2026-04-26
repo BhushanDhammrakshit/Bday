@@ -65,25 +65,26 @@
 
   // -------- Build timeline --------
   const container = document.getElementById('timelineContainer');
+
   // Use LOCAL date (not UTC) so memories unlock at local midnight
-  const _now = new Date();
-  const todayStr = _now.getFullYear() + '-' +
-    String(_now.getMonth() + 1).padStart(2, '0') + '-' +
-    String(_now.getDate()).padStart(2, '0');
+  function getTodayStr() {
+    const n = new Date();
+    return n.getFullYear() + '-' +
+      String(n.getMonth() + 1).padStart(2, '0') + '-' +
+      String(n.getDate()).padStart(2, '0');
+  }
+
+  const cardRefs = []; // { card, date }
 
   MEMORIES.forEach((mem, idx) => {
     const card = document.createElement('article');
     card.className = 'memory-card ' + (idx % 2 === 0 ? 'left' : 'right');
+    card.dataset.date = mem.date;
 
-    const isLocked = mem.date > todayStr;
-    if (isLocked) {
-      card.classList.add('locked');
-      const d = new Date(mem.date + 'T00:00:00');
-      card.dataset.unlock = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-    }
+    const d = new Date(mem.date + 'T00:00:00');
+    card.dataset.unlock = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
-    const dateLabel = new Date(mem.date + 'T00:00:00')
-      .toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric' });
+    const dateLabel = d.toLocaleDateString(undefined, { weekday: 'short', month: 'long', day: 'numeric' });
 
     card.innerHTML = `
       <span class="memory-date">${dateLabel}</span>
@@ -93,7 +94,19 @@
       <p class="memory-text">${mem.text}</p>
     `;
     container.appendChild(card);
+    cardRefs.push({ card, date: mem.date });
   });
+
+  // Re-evaluate locks every minute so memories unlock live at local midnight
+  function refreshLocks() {
+    const todayStr = getTodayStr();
+    cardRefs.forEach(({ card, date }) => {
+      const locked = date > todayStr;
+      card.classList.toggle('locked', locked);
+    });
+  }
+  refreshLocks();
+  setInterval(refreshLocks, 60 * 1000);
 
   // -------- Reveal-on-scroll --------
   const observer = new IntersectionObserver((entries) => {
