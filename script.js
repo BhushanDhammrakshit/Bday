@@ -65,7 +65,11 @@
 
   // -------- Build timeline --------
   const container = document.getElementById('timelineContainer');
-  const todayStr = new Date().toISOString().slice(0, 10);
+  // Use LOCAL date (not UTC) so memories unlock at local midnight
+  const _now = new Date();
+  const todayStr = _now.getFullYear() + '-' +
+    String(_now.getMonth() + 1).padStart(2, '0') + '-' +
+    String(_now.getDate()).padStart(2, '0');
 
   MEMORIES.forEach((mem, idx) => {
     const card = document.createElement('article');
