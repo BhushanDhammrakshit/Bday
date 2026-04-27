@@ -67,7 +67,13 @@
   const container = document.getElementById('timelineContainer');
 
   // Use LOCAL date (not UTC) so memories unlock at local midnight
+  // Dev override: ?today=YYYY-MM-DD or ?unlock=all
+  const _params = new URLSearchParams(location.search);
+  const _override = _params.get('today');
+  const _unlockAll = _params.get('unlock') === 'all';
   function getTodayStr() {
+    if (_unlockAll) return '9999-12-31';
+    if (_override) return _override;
     const n = new Date();
     return n.getFullYear() + '-' +
       String(n.getMonth() + 1).padStart(2, '0') + '-' +
@@ -93,6 +99,7 @@
       <h3 class="memory-title">${mem.title}</h3>
       <p class="memory-text">${mem.text}</p>
       ${idx === 1 ? '<button type="button" class="play-c4-btn" data-c4-open>Play Connect 4 🎮</button>' : ''}
+      ${idx === 2 ? '<button type="button" class="play-bf-btn" data-bf-open>Catch Butterflies 🦋</button>' : ''}
     `;
     container.appendChild(card);
     cardRefs.push({ card, date: mem.date });
@@ -204,6 +211,10 @@
   const c4Status  = document.getElementById('c4Status');
   const c4Close   = document.getElementById('c4Close');
   const c4Restart = document.getElementById('c4Restart');
+  const c4DiffBtns = document.querySelectorAll('.c4-diff-btn');
+
+  // Bot difficulty: 'easy' | 'medium' | 'hard'
+  let c4Difficulty = 'medium';
 
   function newBoard() {
     return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -332,43 +343,61 @@
     return best;
   }
 
+  function chooseBotCol() {
+    const cols = validCols(board);
+
+    // Detect immediate win/block opportunities
+    const winNow = cols.find(c => {
+      const { board: nb, row } = cloneAndDrop(board, c, BOT);
+      return row >= 0 && checkWin(nb, BOT);
+    });
+    const mustBlock = cols.find(c => {
+      const { board: nb, row } = cloneAndDrop(board, c, PLAYER);
+      return row >= 0 && checkWin(nb, PLAYER);
+    });
+
+    if (c4Difficulty === 'easy') {
+      // Mostly random. Occasionally takes an obvious win. Rarely blocks.
+      if (winNow !== undefined && Math.random() < 0.5) return winNow;
+      if (mustBlock !== undefined && Math.random() < 0.2) return mustBlock;
+      return cols[Math.floor(Math.random() * cols.length)];
+    }
+
+    if (c4Difficulty === 'medium') {
+      // Always wins when it can. Blocks often. Sometimes plays strategically.
+      if (winNow !== undefined) return winNow;
+      if (mustBlock !== undefined && Math.random() < 0.7) return mustBlock;
+      if (Math.random() < 0.6) {
+        const { col } = minimax(board, 2, -Infinity, Infinity, true);
+        if (col !== undefined && cols.includes(col)) return col;
+      }
+      return cols[Math.floor(Math.random() * cols.length)];
+    }
+
+    // hard: deep minimax search, always wins/blocks
+    if (winNow !== undefined) return winNow;
+    if (mustBlock !== undefined) return mustBlock;
+    const { col } = minimax(board, 5, -Infinity, Infinity, true);
+    if (col !== undefined && cols.includes(col)) return col;
+    return cols[Math.floor(Math.random() * cols.length)];
+  }
+
   function botMove() {
     busy = true;
     renderBoard();
-    c4Status.textContent = "Bot is thinking… 🤔";
+    const thinking = {
+      easy:   "Bot is guessing… 🌸",
+      medium: "Bot is thinking… 🤔",
+      hard:   "Bot is calculating… 🔥"
+    };
+    c4Status.textContent = thinking[c4Difficulty] || thinking.medium;
+    const delay = c4Difficulty === 'hard' ? 650 : 450;
     setTimeout(() => {
-      const cols = validCols(board);
-      let chosenCol;
-
-      // 1) Always take an immediate winning move
-      const winNow = cols.find(c => {
-        const { board: nb, row } = cloneAndDrop(board, c, BOT);
-        return row >= 0 && checkWin(nb, BOT);
-      });
-
-      // 2) 60% of the time block an immediate player win; 40% miss it (dumb)
-      const mustBlock = cols.find(c => {
-        const { board: nb, row } = cloneAndDrop(board, c, PLAYER);
-        return row >= 0 && checkWin(nb, PLAYER);
-      });
-
-      if (winNow !== undefined) {
-        chosenCol = winNow;
-      } else if (mustBlock !== undefined && Math.random() < 0.6) {
-        chosenCol = mustBlock;
-      } else if (Math.random() < 0.5) {
-        // 3) Half the time: shallow strategic move (depth 1)
-        const { col } = minimax(board, 1, -Infinity, Infinity, true);
-        chosenCol = col;
-      } else {
-        // 4) Otherwise: completely random move
-        chosenCol = cols[Math.floor(Math.random() * cols.length)];
-      }
-
+      const chosenCol = chooseBotCol();
       drop(chosenCol, BOT);
       busy = false;
       afterMove(BOT);
-    }, 450);
+    }, delay);
   }
 
   function drop(col, player) {
@@ -436,10 +465,132 @@
   });
   c4Close.addEventListener('click', closeC4);
   c4Restart.addEventListener('click', startGame);
+
+  c4DiffBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      c4Difficulty = btn.dataset.diff;
+      c4DiffBtns.forEach(b => b.classList.toggle('active', b === btn));
+      startGame();
+    });
+  });
   c4Modal.addEventListener('click', (e) => {
     if (e.target === c4Modal) closeC4();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !c4Modal.classList.contains('hidden')) closeC4();
+  });
+
+  // ============================================
+  // Butterfly Catcher (3rd memory)
+  // ============================================
+  const BUTTERFLY_NOTES = [
+    "Remember the breeze under those tall trees? 🌳",
+    "Your laugh echoed louder than the birds. 😄",
+    "That stamina though… I was struggling to keep up! 💨",
+    "Yoga pants. Sexy ekdum. That's all I'm saying. 😏",
+    "Holding your hand on that trail = my favorite hike ever. 💚",
+    "I'd get lost in any forest as long as you're with me. 🌲💕"
+  ];
+
+  const bfModal   = document.getElementById('bfModal');
+  const bfStage   = document.getElementById('bfStage');
+  const bfNotes   = document.getElementById('bfNotes');
+  const bfStatus  = document.getElementById('bfStatus');
+  const bfClose   = document.getElementById('bfClose');
+  const bfRestart = document.getElementById('bfRestart');
+
+  let bfCaught = 0;
+  const bfTimers = [];
+
+  function bfClearTimers() {
+    bfTimers.forEach(id => clearTimeout(id));
+    bfTimers.length = 0;
+  }
+
+  function spawnButterfly(idx) {
+    const stageW = bfStage.clientWidth;
+    const stageH = bfStage.clientHeight;
+    const b = document.createElement('span');
+    b.className = 'bf-butterfly';
+    b.textContent = '🦋';
+    b.dataset.idx = idx;
+    let x = Math.random() * (stageW - 40);
+    let y = Math.random() * (stageH - 40);
+    b.style.left = x + 'px';
+    b.style.top  = y + 'px';
+    bfStage.appendChild(b);
+
+    let vx = (Math.random() - 0.5) * 1.4;
+    let vy = (Math.random() - 0.5) * 1.4;
+    function wander() {
+      if (!b.isConnected) return;
+      vx += (Math.random() - 0.5) * 0.4;
+      vy += (Math.random() - 0.5) * 0.4;
+      vx = Math.max(-1.6, Math.min(1.6, vx));
+      vy = Math.max(-1.6, Math.min(1.6, vy));
+      x += vx; y += vy;
+      if (x < 0 || x > stageW - 30) vx = -vx;
+      if (y < 0 || y > stageH - 30) vy = -vy;
+      x = Math.max(0, Math.min(stageW - 30, x));
+      y = Math.max(0, Math.min(stageH - 30, y));
+      b.style.left = x + 'px';
+      b.style.top  = y + 'px';
+      b.style.transform = `rotate(${vx * 12}deg)`;
+      bfTimers.push(setTimeout(wander, 50));
+    }
+    wander();
+
+    b.addEventListener('click', () => {
+      if (b.classList.contains('caught')) return;
+      b.classList.add('caught');
+      const p = document.createElement('p');
+      p.textContent = BUTTERFLY_NOTES[idx];
+      bfNotes.appendChild(p);
+      bfCaught++;
+      if (bfCaught === BUTTERFLY_NOTES.length) {
+        bfStatus.textContent = "All caught! Every one of these is true. 💚";
+      } else {
+        bfStatus.textContent = `Caught ${bfCaught}/${BUTTERFLY_NOTES.length} 🦋`;
+      }
+      setTimeout(() => b.remove(), 500);
+    });
+  }
+
+  function startButterflies() {
+    bfClearTimers();
+    bfStage.innerHTML = '';
+    bfNotes.innerHTML = '';
+    bfCaught = 0;
+    bfStatus.textContent = "Tap each butterfly to unlock a tiny memory ✨";
+    for (let i = 0; i < BUTTERFLY_NOTES.length; i++) {
+      setTimeout(() => spawnButterfly(i), i * 200);
+    }
+  }
+
+  function openBf() {
+    bfModal.classList.remove('hidden');
+    setTimeout(startButterflies, 50);
+  }
+  function closeBf() {
+    bfModal.classList.add('hidden');
+    bfClearTimers();
+    bfStage.innerHTML = '';
+  }
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-bf-open]');
+    if (btn) {
+      const card = btn.closest('.memory-card');
+      if (card && card.classList.contains('locked')) return;
+      openBf();
+    }
+  });
+  bfClose.addEventListener('click', closeBf);
+  bfRestart.addEventListener('click', startButterflies);
+  bfModal.addEventListener('click', (e) => {
+    if (e.target === bfModal) closeBf();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !bfModal.classList.contains('hidden')) closeBf();
   });
 })();
