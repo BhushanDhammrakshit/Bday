@@ -532,6 +532,38 @@ body {
   font-size: 0.95rem;
 }
 
+.c4-difficulty {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0.2rem 0 0.8rem;
+}
+.c4-diff-label {
+  font-size: 0.85rem;
+  color: var(--plum);
+  margin-right: 0.2rem;
+}
+.c4-diff-btn {
+  border: 2px solid var(--rose);
+  background: #fff;
+  color: var(--rose);
+  border-radius: 999px;
+  padding: 0.32rem 0.85rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.c4-diff-btn:hover { transform: translateY(-1px); }
+.c4-diff-btn.active {
+  background: linear-gradient(135deg, var(--rose), #ff9ec0);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(255, 122, 166, 0.4);
+}
+
 .c4-legend {
   margin-top: 0.9rem;
   font-size: 0.85rem;
@@ -554,4 +586,127 @@ body {
   .c4-dialog { padding: 1.2rem 0.9rem 1rem; }
   .c4-title { font-size: 1.8rem; }
   .c4-board { gap: 4px; padding: 7px; }
+}
+
+
+/* ============================================
+   Butterfly Catcher (3rd memory)
+   ============================================ */
+.memory-card .play-bf-btn {
+  display: inline-block;
+  margin-top: 0.6rem;
+  margin-left: 0.5rem;
+  padding: 0.55rem 1.2rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #8bc472, #4a7a3a);
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.memory-card .play-bf-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.bf-modal {
+  position: fixed; inset: 0;
+  background: rgba(60, 90, 50, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+  animation: c4FadeIn .25s ease;
+}
+.bf-modal.hidden { display: none; }
+
+.bf-dialog {
+  position: relative;
+  background: linear-gradient(180deg, #f6fff1, #e8f7e0);
+  border-radius: 24px;
+  padding: 1.6rem 1.6rem 1.4rem;
+  width: min(560px, 100%);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  border: 2px solid #c8e6b8;
+}
+
+.bf-close {
+  position: absolute; top: 0.7rem; right: 0.9rem;
+  background: transparent; border: none;
+  font-size: 1.4rem; color: #4a7a3a; cursor: pointer; line-height: 1;
+}
+
+.bf-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.2rem; color: #4a7a3a; margin-bottom: 0.2rem;
+}
+
+.bf-status {
+  font-size: 0.95rem; color: var(--plum);
+  margin-bottom: 0.9rem; font-weight: 500;
+  min-height: 1.4em;
+}
+
+.bf-stage {
+  position: relative;
+  width: 100%; height: 280px;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(255,255,255,0.5), transparent 50%),
+    linear-gradient(180deg, #d8efc4 0%, #b8dca0 100%);
+  border-radius: 16px; overflow: hidden;
+  box-shadow: inset 0 4px 14px rgba(60,90,50,0.25);
+  margin-bottom: 0.9rem;
+}
+
+.bf-butterfly {
+  position: absolute;
+  font-size: 1.8rem;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .2s ease;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.bf-butterfly:hover { transform: scale(1.25); }
+.bf-butterfly.caught {
+  pointer-events: none;
+  animation: bfPoof .5s forwards;
+}
+@keyframes bfPoof {
+  to { transform: scale(2.5) rotate(40deg); opacity: 0; }
+}
+
+.bf-notes {
+  min-height: 60px;
+  background: rgba(255,255,255,0.6);
+  border-radius: 12px;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.9rem;
+  text-align: left;
+  font-size: 0.9rem;
+  color: var(--plum);
+}
+.bf-notes p {
+  margin: 0.25rem 0;
+  animation: bfFadeIn .4s ease;
+}
+.bf-notes p::before { content: "?? "; }
+@keyframes bfFadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.bf-restart {
+  padding: 0.55rem 1.4rem;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+  .bf-dialog { padding: 1.2rem 0.9rem 1rem; }
+  .bf-title { font-size: 1.8rem; }
+  .bf-stage { height: 220px; }
 }
