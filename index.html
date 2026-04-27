@@ -65,6 +65,12 @@
       <button class="c4-close" id="c4Close" aria-label="Close game">✕</button>
       <h2 class="c4-title" id="c4Title">Connect 4 💕</h2>
       <p class="c4-status" id="c4Status">Your turn, cutie ♥</p>
+      <div class="c4-difficulty" role="group" aria-label="Bot difficulty">
+        <span class="c4-diff-label">Bot level:</span>
+        <button type="button" class="c4-diff-btn" data-diff="easy">Easy 🌸</button>
+        <button type="button" class="c4-diff-btn active" data-diff="medium">Medium ⭐</button>
+        <button type="button" class="c4-diff-btn" data-diff="hard">Hard 🔥</button>
+      </div>
       <div class="c4-board" id="c4Board" aria-label="Connect 4 board"></div>
       <div class="c4-controls">
         <button class="cta c4-restart" id="c4Restart">Play Again 🔄</button>
@@ -73,6 +79,18 @@
         <span class="c4-dot c4-you"></span> You &nbsp;·&nbsp;
         <span class="c4-dot c4-bot"></span> Bot
       </p>
+    </div>
+  </div>
+
+  <!-- Butterfly Catcher Modal (3rd memory) -->
+  <div class="bf-modal hidden" id="bfModal" role="dialog" aria-modal="true" aria-labelledby="bfTitle">
+    <div class="bf-dialog">
+      <button class="bf-close" id="bfClose" aria-label="Close">✕</button>
+      <h2 class="bf-title" id="bfTitle">Catch the Butterflies 🦋</h2>
+      <p class="bf-status" id="bfStatus">Tap each butterfly to unlock a tiny memory ✨</p>
+      <div class="bf-stage" id="bfStage" aria-label="Butterfly catching area"></div>
+      <div class="bf-notes" id="bfNotes"></div>
+      <button class="cta bf-restart" id="bfRestart">Release Again 🦋</button>
     </div>
   </div>
 
