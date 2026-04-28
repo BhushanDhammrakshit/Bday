@@ -642,3 +642,90 @@ body {
   backface-visibility: hidden;
   contain: layout style;
 }
+
+/* ============================================
+   Song Player (4th memory — Sunidhi)
+   ============================================ */
+.song-player {
+  margin-top: 0.8rem;
+  padding: 0.85rem 1rem 0.95rem;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 224, 236, 0.85));
+  border: 1px solid rgba(255, 122, 166, 0.35);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+.play-song-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  align-self: flex-start;
+  padding: 0.55rem 1.1rem;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--pink-500), var(--rose));
+  color: #fff;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.play-song-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.play-song-btn:active { transform: translateY(0) scale(0.97); }
+.song-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem; height: 1.4rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.song-player.is-playing .play-song-btn {
+  background: linear-gradient(135deg, #ff7aa6, #c2185b);
+  animation: songPulse 1.6s ease-in-out infinite;
+}
+@keyframes songPulse {
+  0%,100% { box-shadow: 0 8px 22px rgba(233, 30, 99, 0.25); }
+  50%     { box-shadow: 0 10px 28px rgba(233, 30, 99, 0.55); }
+}
+
+.song-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.85rem;
+  color: var(--plum);
+}
+.song-title  { font-weight: 600; }
+.song-artist { opacity: 0.8; }
+.song-time   { margin-left: auto; font-variant-numeric: tabular-nums; opacity: 0.75; }
+
+.song-progress {
+  position: relative;
+  height: 6px;
+  background: rgba(233, 30, 99, 0.15);
+  border-radius: 999px;
+  overflow: hidden;
+  cursor: pointer;
+}
+.song-progress-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--pink-400), var(--rose));
+  border-radius: 999px;
+  transition: width .15s linear;
+}
+
+@media (max-width: 480px) {
+  .song-time { margin-left: 0; width: 100%; }
+}
