@@ -100,6 +100,23 @@
       <p class="memory-text">${mem.text}</p>
       ${idx === 1 ? '<button type="button" class="play-c4-btn" data-c4-open>Play Connect 4 🎮</button>' : ''}
       ${idx === 2 ? '<button type="button" class="play-bf-btn" data-bf-release>Release Butterflies 🦋</button>' : ''}
+      ${idx === 3 ? `
+        <div class="song-player" data-song-player>
+          <button type="button" class="play-song-btn" data-song-toggle aria-label="Play Kande Pohe">
+            <span class="song-icon" aria-hidden="true">▶</span>
+            <span class="song-label">Play "Kande Pohe" 🎵</span>
+          </button>
+          <div class="song-meta">
+            <span class="song-title">Kande Pohe</span>
+            <span class="song-artist">— Sunidhi Chauhan</span>
+            <span class="song-time" data-song-time>0:00 / 0:00</span>
+          </div>
+          <div class="song-progress" data-song-progress>
+            <div class="song-progress-fill" data-song-fill></div>
+          </div>
+          <audio data-song-audio preload="metadata" src="audio/kande-pohe.mp3#t=15"></audio>
+        </div>
+      ` : ''}
     `;
     container.appendChild(card);
     cardRefs.push({ card, date: mem.date });
@@ -645,6 +662,102 @@
       lastT = 0;
     } else if (!document.hidden && critters.length) {
       ensureLoop();
+    }
+  });
+
+  // ============================================
+  // Song Player (4th memory — Sunidhi: "Kande Pohe")
+  // Only one player can play at a time.
+  // ============================================
+  function fmtTime(s) {
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return m + ':' + String(sec).padStart(2, '0');
+  }
+
+  function setSongUI(player, playing) {
+    const icon = player.querySelector('.song-icon');
+    const label = player.querySelector('.song-label');
+    if (icon)  icon.textContent  = playing ? '⏸' : '▶';
+    if (label) label.textContent = playing
+      ? 'Pause "Kande Pohe" 🎶'
+      : 'Play "Kande Pohe" 🎵';
+    player.classList.toggle('is-playing', playing);
+  }
+
+  document.querySelectorAll('[data-song-player]').forEach((player) => {
+    const audio = player.querySelector('[data-song-audio]');
+    const btn   = player.querySelector('[data-song-toggle]');
+    const fill  = player.querySelector('[data-song-fill]');
+    const time  = player.querySelector('[data-song-time]');
+    const progress = player.querySelector('[data-song-progress]');
+    if (!audio || !btn) return;
+
+    const START_AT = 15; // seconds — skip intro
+    let startApplied = false;
+    function applyStart() {
+      if (startApplied) return;
+      if (!isFinite(audio.duration) || audio.duration <= START_AT) return;
+      try { audio.currentTime = START_AT; } catch (_) { /* not seekable yet */ return; }
+      startApplied = true;
+    }
+    audio.addEventListener('loadedmetadata', applyStart);
+
+    btn.addEventListener('click', () => {
+      // Don't play from a locked card
+      const card = btn.closest('.memory-card');
+      if (card && card.classList.contains('locked')) return;
+
+      if (audio.paused) {
+        // Pause every other audio first
+        document.querySelectorAll('[data-song-audio]').forEach((a) => {
+          if (a !== audio && !a.paused) a.pause();
+        });
+        applyStart();
+        audio.play().then(() => {
+          // Some browsers ignore currentTime before play resolves
+          if (!startApplied) applyStart();
+        }).catch(() => {
+          setSongUI(player, false);
+          if (time) time.textContent = "Couldn't play — add audio/kande-pohe.mp3";
+        });
+      } else {
+        audio.pause();
+      }
+    });
+
+    audio.addEventListener('play',  () => setSongUI(player, true));
+    audio.addEventListener('pause', () => setSongUI(player, false));
+    audio.addEventListener('ended', () => {
+      setSongUI(player, false);
+      if (fill) fill.style.width = '0%';
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+      if (time) time.textContent = '0:00 / ' + fmtTime(audio.duration);
+    });
+
+    audio.addEventListener('timeupdate', () => {
+      const dur = audio.duration || 0;
+      const cur = audio.currentTime || 0;
+      if (fill) fill.style.width = (dur ? (cur / dur) * 100 : 0) + '%';
+      if (time) time.textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
+    });
+
+    audio.addEventListener('error', () => {
+      setSongUI(player, false);
+      if (time) time.textContent = "Couldn't load — add audio/kande-pohe.mp3";
+    });
+
+    // Click on progress bar to seek
+    if (progress) {
+      progress.addEventListener('click', (e) => {
+        if (!audio.duration) return;
+        const r = progress.getBoundingClientRect();
+        const pct = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+        audio.currentTime = pct * audio.duration;
+      });
     }
   });
 })();
