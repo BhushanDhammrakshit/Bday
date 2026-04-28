@@ -482,109 +482,149 @@
 
   // ============================================
   // Release Flying Creatures (3rd memory)
-  // Button on the Sanjay Gandhi card releases butterflies
-  // and other forest critters that fly across the page.
+  // Single shared rAF loop + transform-only animation
+  // for smooth performance on mobile and laptops.
   // ============================================
   const FLY_CREATURES = [
     '🦋', '🦋', '🦋', '🦋',   // butterflies (more common)
-    '🐝', '🐞', '🪲', '🪰',
+    '🐝', '🐞', '🪲',
     '🐦', '🕊️', '🦜', '🦉',
     '🐿️', '🦌', '🐇', '🦊',
     '🌸', '🍃'
   ];
+  const GROUNDED = new Set(['🐿️','🦌','🐇','🦊']);
 
   const flyLayer = document.getElementById('flyLayer');
+  const isMobile = window.matchMedia('(max-width: 600px)').matches ||
+                   navigator.maxTouchPoints > 1;
+  const MAX_ACTIVE = isMobile ? 24 : 48;
+  const PER_CLICK  = isMobile ? 14 : 22;
 
-  function flyOne(originX, originY, emoji, delay) {
+  /** @type {Array<{el:HTMLElement,x:number,y:number,vx:number,vy:number,grounded:boolean,start:number,delay:number,life:number,flap:number,dead:boolean}>} */
+  const critters = [];
+  let rafId = 0;
+  let lastT = 0;
+
+  function loop(now) {
+    if (!critters.length) { rafId = 0; return; }
+    const dt = lastT ? Math.min(40, now - lastT) : 16; // ms, clamp big gaps
+    lastT = now;
+    const f = dt / 16.6667; // frame-scale factor
+
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    for (let i = critters.length - 1; i >= 0; i--) {
+      const c = critters[i];
+      const elapsed = now - c.start;
+
+      if (elapsed > c.life) {
+        c.el.remove();
+        critters.splice(i, 1);
+        continue;
+      }
+      if (elapsed < c.delay) continue; // still holding (opacity 0 via CSS)
+
+      if (c.el.style.opacity !== '1') c.el.style.opacity = '1';
+
+      if (c.grounded) {
+        c.x += c.vx * f;
+        c.flap += 0.3 * f;
+        const bob = Math.sin(c.flap) * 4;
+        const flip = c.vx < 0 ? -1 : 1;
+        c.el.style.transform =
+          `translate3d(${c.x}px, ${c.y + bob}px, 0) scaleX(${flip})`;
+      } else {
+        // gentle wander — cheaper than per-frame Math.random tuning
+        c.vx += (Math.random() - 0.5) * 0.2 * f;
+        c.vy += (Math.random() - 0.5) * 0.2 * f;
+        const sp = Math.hypot(c.vx, c.vy);
+        const maxS = 4.5;
+        if (sp > maxS) { c.vx = c.vx / sp * maxS; c.vy = c.vy / sp * maxS; }
+        c.x += c.vx * f;
+        c.y += c.vy * f;
+        c.flap += 0.4 * f;
+        const tilt = Math.sin(c.flap) * 16 + c.vx * 5;
+        c.el.style.transform =
+          `translate3d(${c.x}px, ${c.y}px, 0) rotate(${tilt.toFixed(1)}deg)`;
+      }
+
+      if (c.x < -140 || c.x > W + 140 || c.y < -140 || c.y > H + 140) {
+        c.el.remove();
+        critters.splice(i, 1);
+      }
+    }
+
+    if (critters.length) {
+      rafId = requestAnimationFrame(loop);
+    } else {
+      rafId = 0;
+      lastT = 0;
+    }
+  }
+
+  function ensureLoop() {
+    if (!rafId) {
+      lastT = 0;
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+
+  function spawnOne(originX, originY, emoji, delay) {
     const el = document.createElement('span');
     el.className = 'fly-critter';
     el.textContent = emoji;
-    // size variation
-    const size = 1.3 + Math.random() * 1.6;
-    el.style.fontSize = size + 'rem';
-    flyLayer.appendChild(el);
+    el.style.fontSize = (1.3 + Math.random() * 1.4) + 'rem';
+    el.style.opacity = '0';
 
-    // start near origin with small jitter
+    const grounded = GROUNDED.has(emoji);
     let x = originX + (Math.random() - 0.5) * 30;
     let y = originY + (Math.random() - 0.5) * 30;
+    let vx, vy;
 
-    // pick a random direction & speed; aim to leave the viewport
-    const angle = Math.random() * Math.PI * 2;
-    const speed = 1.2 + Math.random() * 2.4;
-    let vx = Math.cos(angle) * speed;
-    let vy = Math.sin(angle) * speed - 0.3; // slight upward bias
-
-    // ground-walking critters (deer, fox, rabbit, squirrel) stay near bottom
-    const grounded = ['🐿️','🦌','🐇','🦊'].includes(emoji);
     if (grounded) {
       y = window.innerHeight - 60 - Math.random() * 40;
-      vx = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2.5);
+      vx = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2);
       vy = 0;
-      el.style.transform = vx < 0 ? 'scaleX(-1)' : '';
+    } else {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 1.2 + Math.random() * 2.2;
+      vx = Math.cos(angle) * speed;
+      vy = Math.sin(angle) * speed - 0.3;
     }
 
-    let t = 0;
-    const lifeMs = 7000 + Math.random() * 3000;
-    const start = performance.now();
-    let flap = 0;
+    // initial position via transform (no layout)
+    el.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    flyLayer.appendChild(el);
 
-    function step(now) {
-      const elapsed = now - start;
-      if (!el.isConnected) return;
-      if (elapsed > lifeMs) { el.remove(); return; }
-
-      if (elapsed < delay) {
-        // hold near origin until delay passes
-        el.style.left = x + 'px';
-        el.style.top  = y + 'px';
-        el.style.opacity = '0';
-        requestAnimationFrame(step);
-        return;
-      }
-      el.style.opacity = '1';
-
-      if (!grounded) {
-        // wander
-        vx += (Math.random() - 0.5) * 0.25;
-        vy += (Math.random() - 0.5) * 0.25;
-        // clamp speed
-        const sp = Math.hypot(vx, vy);
-        const maxS = 4.5;
-        if (sp > maxS) { vx = vx / sp * maxS; vy = vy / sp * maxS; }
-        x += vx; y += vy;
-        flap += 0.4;
-        const tilt = Math.sin(flap) * 18 + vx * 6;
-        el.style.transform = `translate(-50%, -50%) rotate(${tilt}deg)`;
-      } else {
-        x += vx;
-        // small bob
-        flap += 0.3;
-        el.style.transform =
-          (vx < 0 ? 'scaleX(-1) ' : '') +
-          `translate(-50%, ${Math.sin(flap) * 4}px)`;
-      }
-
-      el.style.left = x + 'px';
-      el.style.top  = y + 'px';
-
-      // remove once well off-screen
-      if (x < -120 || x > window.innerWidth + 120 ||
-          y < -120 || y > window.innerHeight + 120) {
-        el.remove();
-        return;
-      }
-      requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
+    critters.push({
+      el, x, y, vx, vy, grounded,
+      start: performance.now(),
+      delay,
+      life: 6500 + Math.random() * 2500,
+      flap: Math.random() * Math.PI * 2,
+      dead: false,
+    });
+    ensureLoop();
   }
 
   function releaseCritters(originX, originY) {
-    // Mix: lots of butterflies, sprinkle of other critters
-    const total = 28;
+    // Drop oldest if we'd exceed cap
+    let allowed = Math.max(0, MAX_ACTIVE - critters.length);
+    if (allowed === 0) {
+      // recycle: remove a few oldest to make room
+      const toRemove = Math.min(critters.length, PER_CLICK / 2 | 0);
+      for (let i = 0; i < toRemove; i++) {
+        const c = critters.shift();
+        if (c) c.el.remove();
+      }
+      allowed = Math.max(0, MAX_ACTIVE - critters.length);
+    }
+    const total = Math.min(PER_CLICK, allowed);
     for (let i = 0; i < total; i++) {
       const emoji = FLY_CREATURES[Math.floor(Math.random() * FLY_CREATURES.length)];
-      const delay = i * 80 + Math.random() * 200;
-      flyOne(originX, originY, emoji, delay);
+      const delay = i * 70 + Math.random() * 150;
+      spawnOne(originX, originY, emoji, delay);
     }
   }
 
@@ -595,5 +635,16 @@
     if (card && card.classList.contains('locked')) return;
     const r = btn.getBoundingClientRect();
     releaseCritters(r.left + r.width / 2, r.top + r.height / 2);
+  });
+
+  // Pause loop entirely when tab is hidden, resume when visible
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && rafId) {
+      cancelAnimationFrame(rafId);
+      rafId = 0;
+      lastT = 0;
+    } else if (!document.hidden && critters.length) {
+      ensureLoop();
+    }
   });
 })();
