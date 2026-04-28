@@ -267,6 +267,10 @@ body {
 .memory-card.locked .memory-img,
 .memory-card.locked .memory-title,
 .memory-card.locked .memory-text { visibility: hidden; }
+/* Hide interactive features on locked cards (Connect 4 / Butterflies / Song) */
+.memory-card.locked .play-c4-btn,
+.memory-card.locked .play-bf-btn,
+.memory-card.locked .song-player { display: none !important; }
 .memory-card.locked::before {
   content: '🔒 Unlocks ' attr(data-unlock);
   position: absolute;
