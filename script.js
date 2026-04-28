@@ -99,7 +99,7 @@
       <h3 class="memory-title">${mem.title}</h3>
       <p class="memory-text">${mem.text}</p>
       ${idx === 1 ? '<button type="button" class="play-c4-btn" data-c4-open>Play Connect 4 🎮</button>' : ''}
-      ${idx === 2 ? '<button type="button" class="play-bf-btn" data-bf-open>Catch Butterflies 🦋</button>' : ''}
+      ${idx === 2 ? '<button type="button" class="play-bf-btn" data-bf-release>Release Butterflies 🦋</button>' : ''}
     `;
     container.appendChild(card);
     cardRefs.push({ card, date: mem.date });
@@ -481,116 +481,119 @@
   });
 
   // ============================================
-  // Butterfly Catcher (3rd memory)
+  // Release Flying Creatures (3rd memory)
+  // Button on the Sanjay Gandhi card releases butterflies
+  // and other forest critters that fly across the page.
   // ============================================
-  const BUTTERFLY_NOTES = [
-    "Remember the breeze under those tall trees? 🌳",
-    "Your laugh echoed louder than the birds. 😄",
-    "That stamina though… I was struggling to keep up! 💨",
-    "Yoga pants. Sexy ekdum. That's all I'm saying. 😏",
-    "Holding your hand on that trail = my favorite hike ever. 💚",
-    "I'd get lost in any forest as long as you're with me. 🌲💕"
+  const FLY_CREATURES = [
+    '🦋', '🦋', '🦋', '🦋',   // butterflies (more common)
+    '🐝', '🐞', '🪲', '🪰',
+    '🐦', '🕊️', '🦜', '🦉',
+    '🐿️', '🦌', '🐇', '🦊',
+    '🌸', '🍃'
   ];
 
-  const bfModal   = document.getElementById('bfModal');
-  const bfStage   = document.getElementById('bfStage');
-  const bfNotes   = document.getElementById('bfNotes');
-  const bfStatus  = document.getElementById('bfStatus');
-  const bfClose   = document.getElementById('bfClose');
-  const bfRestart = document.getElementById('bfRestart');
+  const flyLayer = document.getElementById('flyLayer');
 
-  let bfCaught = 0;
-  const bfTimers = [];
+  function flyOne(originX, originY, emoji, delay) {
+    const el = document.createElement('span');
+    el.className = 'fly-critter';
+    el.textContent = emoji;
+    // size variation
+    const size = 1.3 + Math.random() * 1.6;
+    el.style.fontSize = size + 'rem';
+    flyLayer.appendChild(el);
 
-  function bfClearTimers() {
-    bfTimers.forEach(id => clearTimeout(id));
-    bfTimers.length = 0;
-  }
+    // start near origin with small jitter
+    let x = originX + (Math.random() - 0.5) * 30;
+    let y = originY + (Math.random() - 0.5) * 30;
 
-  function spawnButterfly(idx) {
-    const stageW = bfStage.clientWidth;
-    const stageH = bfStage.clientHeight;
-    const b = document.createElement('span');
-    b.className = 'bf-butterfly';
-    b.textContent = '🦋';
-    b.dataset.idx = idx;
-    let x = Math.random() * (stageW - 40);
-    let y = Math.random() * (stageH - 40);
-    b.style.left = x + 'px';
-    b.style.top  = y + 'px';
-    bfStage.appendChild(b);
+    // pick a random direction & speed; aim to leave the viewport
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1.2 + Math.random() * 2.4;
+    let vx = Math.cos(angle) * speed;
+    let vy = Math.sin(angle) * speed - 0.3; // slight upward bias
 
-    let vx = (Math.random() - 0.5) * 1.4;
-    let vy = (Math.random() - 0.5) * 1.4;
-    function wander() {
-      if (!b.isConnected) return;
-      vx += (Math.random() - 0.5) * 0.4;
-      vy += (Math.random() - 0.5) * 0.4;
-      vx = Math.max(-1.6, Math.min(1.6, vx));
-      vy = Math.max(-1.6, Math.min(1.6, vy));
-      x += vx; y += vy;
-      if (x < 0 || x > stageW - 30) vx = -vx;
-      if (y < 0 || y > stageH - 30) vy = -vy;
-      x = Math.max(0, Math.min(stageW - 30, x));
-      y = Math.max(0, Math.min(stageH - 30, y));
-      b.style.left = x + 'px';
-      b.style.top  = y + 'px';
-      b.style.transform = `rotate(${vx * 12}deg)`;
-      bfTimers.push(setTimeout(wander, 50));
+    // ground-walking critters (deer, fox, rabbit, squirrel) stay near bottom
+    const grounded = ['🐿️','🦌','🐇','🦊'].includes(emoji);
+    if (grounded) {
+      y = window.innerHeight - 60 - Math.random() * 40;
+      vx = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 2.5);
+      vy = 0;
+      el.style.transform = vx < 0 ? 'scaleX(-1)' : '';
     }
-    wander();
 
-    b.addEventListener('click', () => {
-      if (b.classList.contains('caught')) return;
-      b.classList.add('caught');
-      const p = document.createElement('p');
-      p.textContent = BUTTERFLY_NOTES[idx];
-      bfNotes.appendChild(p);
-      bfCaught++;
-      if (bfCaught === BUTTERFLY_NOTES.length) {
-        bfStatus.textContent = "All caught! Every one of these is true. 💚";
-      } else {
-        bfStatus.textContent = `Caught ${bfCaught}/${BUTTERFLY_NOTES.length} 🦋`;
+    let t = 0;
+    const lifeMs = 7000 + Math.random() * 3000;
+    const start = performance.now();
+    let flap = 0;
+
+    function step(now) {
+      const elapsed = now - start;
+      if (!el.isConnected) return;
+      if (elapsed > lifeMs) { el.remove(); return; }
+
+      if (elapsed < delay) {
+        // hold near origin until delay passes
+        el.style.left = x + 'px';
+        el.style.top  = y + 'px';
+        el.style.opacity = '0';
+        requestAnimationFrame(step);
+        return;
       }
-      setTimeout(() => b.remove(), 500);
-    });
-  }
+      el.style.opacity = '1';
 
-  function startButterflies() {
-    bfClearTimers();
-    bfStage.innerHTML = '';
-    bfNotes.innerHTML = '';
-    bfCaught = 0;
-    bfStatus.textContent = "Tap each butterfly to unlock a tiny memory ✨";
-    for (let i = 0; i < BUTTERFLY_NOTES.length; i++) {
-      setTimeout(() => spawnButterfly(i), i * 200);
+      if (!grounded) {
+        // wander
+        vx += (Math.random() - 0.5) * 0.25;
+        vy += (Math.random() - 0.5) * 0.25;
+        // clamp speed
+        const sp = Math.hypot(vx, vy);
+        const maxS = 4.5;
+        if (sp > maxS) { vx = vx / sp * maxS; vy = vy / sp * maxS; }
+        x += vx; y += vy;
+        flap += 0.4;
+        const tilt = Math.sin(flap) * 18 + vx * 6;
+        el.style.transform = `translate(-50%, -50%) rotate(${tilt}deg)`;
+      } else {
+        x += vx;
+        // small bob
+        flap += 0.3;
+        el.style.transform =
+          (vx < 0 ? 'scaleX(-1) ' : '') +
+          `translate(-50%, ${Math.sin(flap) * 4}px)`;
+      }
+
+      el.style.left = x + 'px';
+      el.style.top  = y + 'px';
+
+      // remove once well off-screen
+      if (x < -120 || x > window.innerWidth + 120 ||
+          y < -120 || y > window.innerHeight + 120) {
+        el.remove();
+        return;
+      }
+      requestAnimationFrame(step);
     }
+    requestAnimationFrame(step);
   }
 
-  function openBf() {
-    bfModal.classList.remove('hidden');
-    setTimeout(startButterflies, 50);
-  }
-  function closeBf() {
-    bfModal.classList.add('hidden');
-    bfClearTimers();
-    bfStage.innerHTML = '';
+  function releaseCritters(originX, originY) {
+    // Mix: lots of butterflies, sprinkle of other critters
+    const total = 28;
+    for (let i = 0; i < total; i++) {
+      const emoji = FLY_CREATURES[Math.floor(Math.random() * FLY_CREATURES.length)];
+      const delay = i * 80 + Math.random() * 200;
+      flyOne(originX, originY, emoji, delay);
+    }
   }
 
   document.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-bf-open]');
-    if (btn) {
-      const card = btn.closest('.memory-card');
-      if (card && card.classList.contains('locked')) return;
-      openBf();
-    }
-  });
-  bfClose.addEventListener('click', closeBf);
-  bfRestart.addEventListener('click', startButterflies);
-  bfModal.addEventListener('click', (e) => {
-    if (e.target === bfModal) closeBf();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !bfModal.classList.contains('hidden')) closeBf();
+    const btn = e.target.closest('[data-bf-release]');
+    if (!btn) return;
+    const card = btn.closest('.memory-card');
+    if (card && card.classList.contains('locked')) return;
+    const r = btn.getBoundingClientRect();
+    releaseCritters(r.left + r.width / 2, r.top + r.height / 2);
   });
 })();
