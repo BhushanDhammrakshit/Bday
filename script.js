@@ -22,43 +22,34 @@
   for (let i = 0; i < 14; i++) setTimeout(spawnHeart, i * 600);
   setInterval(spawnHeart, 1200);
 
-  // -------- Countdown --------
+  // -------- Countdown (birthday already passed — UI hidden, kept for compat) --------
   const target = new Date(TARGET_BIRTHDAY).getTime();
   const elDays = document.getElementById('days');
   const elHours = document.getElementById('hours');
   const elMinutes = document.getElementById('minutes');
   const elSeconds = document.getElementById('seconds');
   const revealSection = document.getElementById('revealSection');
-  let revealed = false;
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
   function tick() {
     const now = Date.now();
     const diff = target - now;
-
     if (diff <= 0) {
-      elDays.textContent = '00';
-      elHours.textContent = '00';
-      elMinutes.textContent = '00';
-      elSeconds.textContent = '00';
-      if (!revealed) {
-        revealed = true;
-        revealSection.classList.remove('hidden');
-        launchConfetti(8000);
-      }
+      if (elDays) elDays.textContent = '00';
+      if (elHours) elHours.textContent = '00';
+      if (elMinutes) elMinutes.textContent = '00';
+      if (elSeconds) elSeconds.textContent = '00';
       return;
     }
-
     const days = Math.floor(diff / 86400000);
     const hours = Math.floor((diff % 86400000) / 3600000);
     const minutes = Math.floor((diff % 3600000) / 60000);
     const seconds = Math.floor((diff % 60000) / 1000);
-
-    elDays.textContent = pad(days);
-    elHours.textContent = pad(hours);
-    elMinutes.textContent = pad(minutes);
-    elSeconds.textContent = pad(seconds);
+    if (elDays) elDays.textContent = pad(days);
+    if (elHours) elHours.textContent = pad(hours);
+    if (elMinutes) elMinutes.textContent = pad(minutes);
+    if (elSeconds) elSeconds.textContent = pad(seconds);
   }
   tick();
   setInterval(tick, 1000);
