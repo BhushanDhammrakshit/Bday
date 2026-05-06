@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Counting Down to Your Special Day 💖</title>
+  <title>Our Memories 💖</title>
   <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Poppins:wght@300;400;600&family=Great+Vibes&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -11,46 +11,66 @@
   <!-- Floating hearts background -->
   <div class="hearts-bg" id="heartsBg" aria-hidden="true"></div>
 
-  <!-- Hero / Countdown Section -->
-  <header class="hero" id="heroSection">
-    <div class="hero-inner">
-      <p class="eyebrow">A little something just for you</p>
-      <h1 class="hero-title">Counting Down to Your Birthday</h1>
-      <p class="hero-sub">Every second brings me closer to celebrating <span class="accent">YOU</span> 💕</p>
-
-      <div class="countdown" id="countdown" role="timer" aria-live="polite">
-        <div class="time-box"><span id="days">00</span><label>Days</label></div>
-        <div class="time-box"><span id="hours">00</span><label>Hours</label></div>
-        <div class="time-box"><span id="minutes">00</span><label>Minutes</label></div>
-        <div class="time-box"><span id="seconds">00</span><label>Seconds</label></div>
+  <!-- Compact Intro Banner (birthday has passed — memories live on) -->
+  <header class="intro-banner" id="introBanner">
+    <div class="intro-inner">
+      <p class="eyebrow">Made with 💗 for you</p>
+      <h1 class="intro-title">Our Little Memory Lane</h1>
+      <p class="intro-sub">
+        Your birthday came and went — but the memories stay forever. 💕
+      </p>
+      <div class="intro-ctas">
+        <a href="#timeline" class="cta">Our Memories ↓</a>
+        <a href="#games" class="cta cta-ghost">Play a Cute Game 🎮</a>
       </div>
-
-      <p class="target-date">🎂 May 2<sup>nd</sup>, 2026 🎂</p>
-
-      <a href="#timeline" class="cta">Walk Through Our Memories ↓</a>
     </div>
   </header>
 
+  <!-- Hidden countdown elements kept for legacy script compatibility -->
+  <div class="countdown-stub" aria-hidden="true" hidden>
+    <span id="days">00</span><span id="hours">00</span><span id="minutes">00</span><span id="seconds">00</span>
+  </div>
+
   <!-- Memory Timeline Section -->
   <section class="timeline-section" id="timeline">
-    <h2 class="section-title">Our Journey to Your Big Day</h2>
-    <p class="section-sub">A memory unlocks each day leading up to May 2<sup>nd</sup> ✨</p>
+    <h2 class="section-title">Our Journey Together</h2>
+    <p class="section-sub">Every photo, every moment — just for us ✨</p>
     <div class="timeline" id="timelineContainer"></div>
   </section>
 
-  <!-- Birthday Reveal (shows when countdown hits 0) -->
-  <section class="reveal hidden" id="revealSection">
-    <div class="reveal-card">
-      <h2 class="reveal-title">🎉 Happy Birthday, My Love 🎉</h2>
-      <p class="reveal-message">
-        Today the world celebrates the most wonderful person I know.
-        You make every ordinary day feel magical, and I can't wait to spend
-        a lifetime of birthdays by your side. Here's to you — the best part of me. 💖
-      </p>
-      <div class="cake">🎂</div>
-      <button class="cta" id="celebrateBtn">Make a Wish 🌟</button>
+  <!-- Cute Little Games Section -->
+  <section class="games-section" id="games">
+    <h2 class="section-title">Cute Little Games 🎮</h2>
+    <p class="section-sub">Pick one and play a round with me 💕</p>
+    <div class="games-grid">
+      <article class="game-card">
+        <div class="game-emoji">🃏</div>
+        <h3 class="game-title">Memory Match</h3>
+        <p class="game-desc">Flip the cards and find the matching cuties.</p>
+        <button type="button" class="cta" data-game-open="memory">Play Memory Match</button>
+      </article>
+      <article class="game-card">
+        <div class="game-emoji">⭕</div>
+        <h3 class="game-title">Tic‑Tac‑Toe</h3>
+        <p class="game-desc">You're 💖, I'm ⭐. Three in a row wins!</p>
+        <button type="button" class="cta" data-game-open="ttt">Play Tic‑Tac‑Toe</button>
+      </article>
+      <article class="game-card">
+        <div class="game-emoji">💝</div>
+        <h3 class="game-title">Catch the Hearts</h3>
+        <p class="game-desc">Tap the falling hearts. Avoid the bombs!</p>
+        <button type="button" class="cta" data-game-open="catch">Play Catch the Hearts</button>
+      </article>
+      <article class="game-card">
+        <div class="game-emoji">🎯</div>
+        <h3 class="game-title">Connect 4</h3>
+        <p class="game-desc">Our classic Kaffeine game — beat the bot!</p>
+        <button type="button" class="cta" data-c4-open>Play Connect 4</button>
+      </article>
     </div>
   </section>
+
+  <!-- Sweet message + wish button (birthday has passed) -->
 
   <footer class="footer">
     <p>Made with 💗 just for you</p>
@@ -85,7 +105,21 @@
   <!-- Flying creatures layer (3rd memory release) -->
   <div class="fly-layer" id="flyLayer" aria-hidden="true"></div>
 
+  <!-- Generic Game Modal (Memory Match / Tic-Tac-Toe / Catch the Hearts) -->
+  <div class="game-modal hidden" id="gameModal" role="dialog" aria-modal="true" aria-labelledby="gameTitle">
+    <div class="game-dialog">
+      <button class="game-close" id="gameClose" aria-label="Close game">✕</button>
+      <h2 class="game-modal-title" id="gameTitle">Game</h2>
+      <p class="game-status" id="gameStatus">&nbsp;</p>
+      <div class="game-body" id="gameBody"></div>
+      <div class="game-controls">
+        <button type="button" class="cta" id="gameRestart">Play Again 🔄</button>
+      </div>
+    </div>
+  </div>
+
   <script src="memories.js"></script>
   <script src="script.js"></script>
+  <script src="games.js"></script>
 </body>
 </html>
